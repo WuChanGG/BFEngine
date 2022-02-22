@@ -1,0 +1,7 @@
+this is the command to run on windows powershell
+
+vcxsrv.exe -screen 0 @1 -nodecoration -wgl +xinerama -screen 1 @2 -nodecoration +xinerama -wgl -screen 2 @4 -nodecoration +xinerama -wgl -screen 3 @3 -nodecoration +xinerama -wgl -ac -multimonitors
+
+and this is added to the i3 config
+
+fake-outputs 1080x1920+0+0,2560x1440+1080+0,1920x1080+3640+0,1920x1080+3640+1080
