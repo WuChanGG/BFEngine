@@ -29,6 +29,10 @@ impl Vector3D {
             z: in_z
         };
     }
+
+    fn dot(self, rhs: Vector3D) -> f32 {
+        return self.x * rhs.x + self.y * rhs.y + self.z * rhs.z;
+    }
 }
 
 impl Default for Vector3D {
