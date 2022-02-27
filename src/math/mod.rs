@@ -32,7 +32,7 @@ impl Vector3D {
         };
     }
 
-    fn dot(self, rhs: Vector3D) -> f32 {
+    fn dot(self, rhs: &Vector3D) -> f32 {
         return self.x * rhs.x + self.y * rhs.y + self.z * rhs.z;
     }
 
@@ -43,7 +43,7 @@ impl Vector3D {
     // the directions of "a" and "b"
     // the area of the parallelogram having sides "a" and "b" is defined
     // by Area = ||axb||
-    fn cross(self, rhs: Vector3D) -> Vector3D {
+    fn cross(self, rhs: &Vector3D) -> Vector3D {
         return Vector3D::new(self.y * rhs.z - self.z * rhs.y,
             self.z * rhs.x - self.x * rhs.z,
             self.x * rhs.y - self.z * rhs.y);
@@ -117,12 +117,12 @@ impl Vector3D {
     // the parallel component is removed leaving only the perpendicular
     // component
 
-    fn project(self, other: Vector3D) -> Vector3D {
-        return other * (self.dot(other) / other.dot(other));
+    fn project(self, other: &Vector3D) -> Vector3D {
+        return *other * (self.dot(other) / other.dot(other));
     }
 
-    fn reject(self, other: Vector3D) -> Vector3D {
-        return self - other * (self.dot(other) / other.dot(other));
+    fn reject(self, other: &Vector3D) -> Vector3D {
+        return self - *other * (self.dot(other) / other.dot(other));
     }
 
     // u_i = v_i - v_i.project(u_k).summation()
@@ -306,13 +306,18 @@ impl ops::Sub<Vector3D> for Vector3D {
 // Each elementary row operation can be applied to a nxn matrix
 
 // Application of rule 1:
-// To multiply row r by a scalar value t, the ele­
+// To multiply row r by a scalar value t, the ele
 // mentary matrix E has the following form, where the (r,r) entry of the identity
 // matrix has been replaced by t.
 
 // Application of rule 2:
 // To exchange row r and row s, the elementary matrix E has the following form,
 // where the same rows have been exchanged in the identity matrix.
+
+// Application of rule 3:
+// To add row s multiplied by the scalar value t to row r, the elementary matrix E has
+// the following forro, where the ( r, s) entry of the identity matrix has been replaced
+// by t.
 
 struct Matrix3D {
     entries: [[f32; 3]; 3],
@@ -400,6 +405,24 @@ impl Matrix3D {
     // of M that excludes row "i" and column "j", the overbar (the line above)
     // is interpreted as "not"
     // ../images/determinant_formula_by_minors.png for more details
+    
+    fn inverse(&self) -> Matrix3D {
+        let a: &Vector3D = self.get_vector_ref(0);
+        let b: &Vector3D = self.get_vector_ref(1);
+        let c: &Vector3D = self.get_vector_ref(2);
+        
+        let r0: Vector3D = b.cross(c);
+        let r1: Vector3D = c.cross(a);
+        let r2: Vector3D = a.cross(b);
+        
+        let inv_det : f32 = 1.0 / r2.dot(c);
+        
+        Matrix3D::new_from_vectors(
+            &Vector3D::new(r0.x * inv_det, r0.y * inv_det, r0.z * inv_det),
+            &Vector3D::new(r1.x * inv_det, r1.y * inv_det, r1.z * inv_det),
+            &Vector3D::new(r2.x * inv_det, r2.y * inv_det, r2.z * inv_det),
+        )
+    }
 }
 
 impl Default for Matrix3D {
@@ -467,5 +490,27 @@ impl ops::Mul<Vector3D> for Matrix3D {
                 + self.get_entry(1, 1) * rhs.y
                 + self.get_entry(1, 2) * rhs.z,
         );
+    }
+}
+
+#[derive(Clone, Copy, Debug)]
+#[repr(C)]
+struct Matrix4D {
+    entries: [[f32; 4]; 4],
+}
+
+impl Matrix4D {
+    fn inverse(&self) -> Matrix4D {
+        let a: &Vector3D = try_cast_ref::<[f32; 4], Vector3D>(&self.entries[0]).unwrap();
+        let b: &Vector3D = try_cast_ref::<[f32; 4], Vector3D>(&self.entries[1]).unwrap();
+        let c: &Vector3D = try_cast_ref::<[f32; 4], Vector3D>(&self.entries[2]).unwrap();
+        let d: &Vector3D = try_cast_ref::<[f32; 4], Vector3D>(&self.entries[3]).unwrap();
+        
+        let x: f32 = self.entries[3][0];
+        let y: f32 = self.entries[3][1];
+        let z: f32 = self.entries[3][2];
+        let w: f32 = self.entries[3][3];
+        
+        
     }
 }
