@@ -10,7 +10,7 @@ use bytemuck::*;
 
 #[derive(Clone, Copy, Debug)]
 #[repr(C)]
-struct Vector3D
+pub struct Vector3D
 {
     x: f32,
     y: f32,
@@ -24,7 +24,7 @@ unsafe impl Zeroable for &Vector3D {}
 unsafe impl bytemuck::Pod for Vector3D {}
 
 impl Vector3D {
-    fn new(in_x: f32, in_y: f32, in_z: f32) -> Self {
+    pub fn new(in_x: f32, in_y: f32, in_z: f32) -> Self {
         return Self {
             x: in_x,
             y: in_y,
@@ -32,7 +32,7 @@ impl Vector3D {
         };
     }
 
-    fn dot(self, rhs: &Vector3D) -> f32 {
+    pub fn dot(self, rhs: &Vector3D) -> f32 {
         return self.x * rhs.x + self.y * rhs.y + self.z * rhs.z;
     }
 
@@ -43,10 +43,10 @@ impl Vector3D {
     // the directions of "a" and "b"
     // the area of the parallelogram having sides "a" and "b" is defined
     // by Area = ||axb||
-    fn cross(self, rhs: &Vector3D) -> Vector3D {
+    pub fn cross(self, rhs: &Vector3D) -> Vector3D {
         return Vector3D::new(self.y * rhs.z - self.z * rhs.y,
             self.z * rhs.x - self.x * rhs.z,
-            self.x * rhs.y - self.z * rhs.y);
+            self.x * rhs.y - self.y * rhs.x);
     }
 
     // Topic: Scalar Triple Product.
@@ -189,6 +189,17 @@ impl ops::DivAssign<f32> for Vector3D {
 }
 
 impl ops::Mul<f32> for Vector3D {
+    type Output = Vector3D;
+    fn mul(self, rhs: f32) -> Self::Output {
+        return Vector3D {
+            x: self.x * rhs,
+            y: self.y * rhs,
+            z: self.z * rhs,
+        };
+    }
+}
+
+impl ops::Mul<f32> for &Vector3D {
     type Output = Vector3D;
     fn mul(self, rhs: f32) -> Self::Output {
         return Vector3D {
@@ -511,6 +522,59 @@ impl Matrix4D {
         let z: f32 = self.entries[3][2];
         let w: f32 = self.entries[3][3];
         
+        let mut s: Vector3D = a.cross(b);
+        let mut t: Vector3D = c.cross(d);
+        let mut u: Vector3D = a * y - b * x;
+        let mut v: Vector3D = c * w - d * z;
         
+        let inv_det: f32 = 1.0 / s.dot(&v) + t.dot(&u);
+        s *= inv_det;
+        t *= inv_det;
+        u *= inv_det;
+        v *= inv_det; 
+        
+        let r0: Vector3D = b.cross(&v) + t * y;
+        let r1: Vector3D = v.cross(&a) - t * x;
+        let r2: Vector3D = d.cross(&u) + s * w;
+        let r3: Vector3D = u.cross(&c) - s * z;
+        
+        return Matrix4D::new(
+            r0.x, r0.y, r0.z, -b.dot(&t),
+            r1.x, r1.y, r1.z, a.dot(&t),
+            r2.x, r2.y, r2.z, -d.dot(&s),
+            r3.x, r3.y, r3.z, c.dot(&s),
+        );
+    }
+    
+    fn new(n00: f32, n01: f32, n02: f32, n03: f32,
+        n10: f32, n11: f32, n12: f32, n13: f32,
+        n20: f32, n21: f32, n22: f32, n23: f32,
+        n30: f32, n31: f32, n32: f32, n33: f32,
+    ) -> Self {
+        let mut zero_matrix: Matrix4D = Matrix4D::default();
+        zero_matrix.entries[0][0] = n00;
+        zero_matrix.entries[0][1] = n10;
+        zero_matrix.entries[0][2] = n20;
+        zero_matrix.entries[0][3] = n30;
+        zero_matrix.entries[1][0] = n01;
+        zero_matrix.entries[1][1] = n11;
+        zero_matrix.entries[1][2] = n21;
+        zero_matrix.entries[1][3] = n31;
+        zero_matrix.entries[2][0] = n02;
+        zero_matrix.entries[2][1] = n12;
+        zero_matrix.entries[2][2] = n22;
+        zero_matrix.entries[2][3] = n32;
+        zero_matrix.entries[3][0] = n03;
+        zero_matrix.entries[3][1] = n13;
+        zero_matrix.entries[3][2] = n23;
+        zero_matrix.entries[3][3] = n33;
+        return zero_matrix;
+    }
+}
+
+impl Default for Matrix4D {
+    fn default() -> Self {
+        let temp_entries: [[f32; 4]; 4] = [[0.0; 4]; 4];
+        Matrix4D { entries: temp_entries }
     }
 }
