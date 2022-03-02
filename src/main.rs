@@ -1,5 +1,7 @@
 use crate::math::Vector3D;
 
+mod rasterizer;
+
 mod math;
 
 fn main() {

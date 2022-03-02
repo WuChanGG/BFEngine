@@ -409,6 +409,7 @@ impl Matrix3D {
             - self.get_entry(1, 0) * self.get_entry(2, 2))
             + self.get_entry(0, 2) * (self.get_entry(1, 0) * self.get_entry(2, 1)
             - self.get_entry(1, 1) * self.get_entry(2, 0));
+        // ax * (by * 1 - cy * 1) ==  
     }
 
     // Subtopic: Expansion by minors
@@ -416,18 +417,18 @@ impl Matrix3D {
     // of M that excludes row "i" and column "j", the overbar (the line above)
     // is interpreted as "not"
     // ../images/determinant_formula_by_minors.png for more details
-    
+
     fn inverse(&self) -> Matrix3D {
         let a: &Vector3D = self.get_vector_ref(0);
         let b: &Vector3D = self.get_vector_ref(1);
         let c: &Vector3D = self.get_vector_ref(2);
-        
+
         let r0: Vector3D = b.cross(c);
         let r1: Vector3D = c.cross(a);
         let r2: Vector3D = a.cross(b);
-        
-        let inv_det : f32 = 1.0 / r2.dot(c);
-        
+
+        let inv_det: f32 = 1.0 / r2.dot(c);
+
         Matrix3D::new_from_vectors(
             &Vector3D::new(r0.x * inv_det, r0.y * inv_det, r0.z * inv_det),
             &Vector3D::new(r1.x * inv_det, r1.y * inv_det, r1.z * inv_det),
@@ -516,28 +517,28 @@ impl Matrix4D {
         let b: &Vector3D = try_cast_ref::<[f32; 4], Vector3D>(&self.entries[1]).unwrap();
         let c: &Vector3D = try_cast_ref::<[f32; 4], Vector3D>(&self.entries[2]).unwrap();
         let d: &Vector3D = try_cast_ref::<[f32; 4], Vector3D>(&self.entries[3]).unwrap();
-        
+
         let x: f32 = self.entries[3][0];
         let y: f32 = self.entries[3][1];
         let z: f32 = self.entries[3][2];
         let w: f32 = self.entries[3][3];
-        
+
         let mut s: Vector3D = a.cross(b);
         let mut t: Vector3D = c.cross(d);
         let mut u: Vector3D = a * y - b * x;
         let mut v: Vector3D = c * w - d * z;
-        
+
         let inv_det: f32 = 1.0 / s.dot(&v) + t.dot(&u);
         s *= inv_det;
         t *= inv_det;
         u *= inv_det;
-        v *= inv_det; 
-        
+        v *= inv_det;
+
         let r0: Vector3D = b.cross(&v) + t * y;
         let r1: Vector3D = v.cross(&a) - t * x;
         let r2: Vector3D = d.cross(&u) + s * w;
         let r3: Vector3D = u.cross(&c) - s * z;
-        
+
         return Matrix4D::new(
             r0.x, r0.y, r0.z, -b.dot(&t),
             r1.x, r1.y, r1.z, a.dot(&t),
@@ -545,7 +546,7 @@ impl Matrix4D {
             r3.x, r3.y, r3.z, c.dot(&s),
         );
     }
-    
+
     fn new(n00: f32, n01: f32, n02: f32, n03: f32,
         n10: f32, n11: f32, n12: f32, n13: f32,
         n20: f32, n21: f32, n22: f32, n23: f32,
@@ -576,5 +577,13 @@ impl Default for Matrix4D {
     fn default() -> Self {
         let temp_entries: [[f32; 4]; 4] = [[0.0; 4]; 4];
         Matrix4D { entries: temp_entries }
+    }
+}
+
+impl ops::BitXor<Vector3D> for Vector3D {
+    type Output = Vector3D;
+    fn bitxor(self, rhs: Vector3D) -> Self::Output {
+        Vector3D::new(self.x.powf(rhs.x), self.y.powf(rhs.y),
+            self.z.powf(rhs.z))
     }
 }
