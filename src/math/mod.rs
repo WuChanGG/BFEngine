@@ -596,75 +596,18 @@ static WIDTH: i32 = 200;
 static HEIGHT: i32 = 200;
 
 impl Vector3D {
-    // compute 2D determinant
-    fn orient_2d(a: &Vector3D, b: &Vector3D, c: &Vector3D) -> f32 {
-        return (b.x - a.x) * (c.y - a.y) - (b.y - a.y) * (c.x - a.x);
-    }
-
-    fn draw_triagle(v0: &Vector3D, v1: &Vector3D, v2: &Vector3D) {
-        // compute the triangle bounding box
-        let mut min_x = v0.x.min(v1.x).min(v2.x);
-        let mut min_y = v0.y.min(v1.y).min(v2.y);
-        let mut max_x = v0.x.max(v1.x).max(v2.x);
-        let mut max_y = v0.y.max(v1.y).max(v2.y);
-
-        // clip against screen bounds
-        min_x = min_x.max(0.0);
-        min_y = min_y.max(0.0);
-        max_x = max_x.min(WIDTH as f32 - 1);
-        max_y = max_y.min(HEIGHT as f32 - 1);
-
-        let min_y_int: i32 = min_y as i32;
-        let max_y_int: i32 = max_y as i32;
-        let min_x_int: i32 = min_x as i32;
-        let max_x_int: i32 = max_x as i32;
-
-        // Rasterize
-        for point_y in min_y_int..max_y_int {
-            for point_x in min_x_int..max_x_int {
-                let p: Vector3D = Vector3D::new(point_x as f32,
-                    point_y as f32, 0.0);
-                
-                // determine barycentric coordinate
-                let w0: f32 = orient2d(v1, v2, p);
-                let w1: f32 = orient2d(v2, v0, p);
-                let w2: f32 = orient2d(v0, v1, p);
-                
-                if (w0 >= 0. && w1 >= 0. && w2 >= 0.)
-                {
-                    // Render pixel
-                }
-            }
+    // https://users.csc.calpoly.edu/~zwood/teaching/csc471/2017F/barycentric.pdf
+    fn barycentric(pts: &[Vector3D; 3], p: &Vector3D) -> Vector3D {
+        // Cramer's rule
+        let u: Vector3D = Vector3D::new(pts[2][0]-pts[0][0], pts[1][0]-pts[0][0],
+            pts[0][0]-p[0]).cross(Vector3D(pts[2][1]-pts[0][1],
+            pts[1][1]-pts[0][1], pts[0][1]-p[1]));
+        
+        if u.z.abs() < 1. {
+            return Vector3D::new(-1., 1., 1.);
         }
+        return Vector3D::new(1. - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
     }
     
-    // https://users.csc.calpoly.edu/~zwood/teaching/csc471/2017F/barycentric.pdf
-    fn barycentric(pts: &[Vector3D; 3], p: &Vector3D) {
-        let area_of_triangle: f32 = (pts[1][0] - pts[0][0]) * (pts[2][1] - pts[0][1])
-            - (pts[2][0] - pts[0][0]) * (pts[1][1] - pts[0][1]);
-        
-        let u_nominator: f32 = (pts[0][0] - pts[2][0]) * (p[1] - pts[2][1])
-            - (p[0] - pts[2][0]) * (pts[0][1] - pts[2][1]);
-        
-        // the "weight" u, β = u in the formula below
-        // (1 − β − γ) a + βb + γc
-        // same applies for the weight "w", γ = w
-        let u_nominator: f32 = (pts[0][0] - pts[2][0]) * (p[1] - pts[2][1])
-            - (p[0] - pts[2][0]) * (pts[0][1] - pts[2][1]);
-        
-        let v_nominator: f32 = (pts[0][0] - pts[2][0]) * (p[1] - pts[2][1])
-            - (p[0] - pts[2][0]) * (pts[0][1] - pts[2][1]);
-        
-        let u: f32 = u_nominator / area_of_triangle;
-    }
+    fn triangle (pts: [Vector3D; 3], )
 }
-
-// Vec3f barycentric(Vec2i *pts, Vec2i P) {
-// Vec3f u = Vec3f(pts[2][0]-pts[0][0], pts[1][0]-pts[0][0], pts[0][0]-P[0])
-//  ^Vec3f(pts[2][1]-pts[0][1], pts[1][1]-pts[0][1], pts[0][1]-P[1]);
-// /* `pts` and `P` has integer value as coordinates
-//    so `abs(u[2])` < 1 means `u[2]` is 0, that means
-//    triangle is degenerate, in this case return something with negative coordinates */
-// if (std::abs(u.z)<1) return Vec3f(-1,1,1);
-// return Vec3f(1.f-(u.x+u.y)/u.z, u.y/u.z, u.x/u.z);
-// } 
