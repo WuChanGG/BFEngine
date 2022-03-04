@@ -2,9 +2,14 @@
 name = "BFEngine"
 version = "0.1.0"
 edition = "2018"
+resolver = "2"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
 bytemuck = "1.7.3"
 pixels = "0.9.0"
+winit = "0.26"
+winit_input_helper = "0.11"
+env_logger = "0.9"
+log = "0.4"

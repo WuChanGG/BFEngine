@@ -597,10 +597,10 @@ static HEIGHT: i32 = 200;
 
 impl Vector3D {
     // https://users.csc.calpoly.edu/~zwood/teaching/csc471/2017F/barycentric.pdf
-    fn barycentric(pts: &[Vector3D; 3], p: &Vector3D) -> Vector3D {
+    pub fn barycentric(pts: &[Vector3D; 3], p: &Vector3D) -> Vector3D {
         // Cramer's rule
         let u: Vector3D = Vector3D::new(pts[2][0]-pts[0][0], pts[1][0]-pts[0][0],
-            pts[0][0]-p[0]).cross(Vector3D(pts[2][1]-pts[0][1],
+            pts[0][0]-p[0]).cross(&Vector3D::new(pts[2][1]-pts[0][1],
             pts[1][1]-pts[0][1], pts[0][1]-p[1]));
         
         if u.z.abs() < 1. {
@@ -609,5 +609,5 @@ impl Vector3D {
         return Vector3D::new(1. - (u.x + u.y) / u.z, u.y / u.z, u.x / u.z);
     }
     
-    fn triangle (pts: [Vector3D; 3], )
+    // fn triangle (pts: [Vector3D; 3], )
 }
